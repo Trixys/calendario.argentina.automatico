@@ -24,8 +24,8 @@ def escribir_evento(f, dtstart: str, dtend: str, summary: str):
 def generar_ics(anio: int):
     filename = f"feriados_argentina_{anio}_oficial_completo.ics"
     
-    # Feriados de holidays.AR (nacionales + trasladables + religiosos)
-    feriados_anio = ar.get_list(year=anio)
+    # Feriados de holidays.AR (nacionales + trasladables + religiosos) – sintaxis corregida
+    feriados_anio = ar.get_list(anio)  # Sin 'year=' – así funciona
     
     with open(filename, "w", encoding="utf-8") as f:
         f.write("BEGIN:VCALENDAR\n")
