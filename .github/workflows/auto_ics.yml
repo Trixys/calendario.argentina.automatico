@@ -1,8 +1,9 @@
-name: Generar ICS automático
+name: Generar ICS automático (siempre actualizado)
 
 on:
   schedule:
-    - cron: "0 0 1 12 *"  # Cada 1 de diciembre
+    - cron: "0 9 * * 1"   # Todos los lunes a las 9 AM UTC (6 AM Argentina)
+    - cron: "0 0 1 * *"   # Además el 1° de cada mes
   workflow_dispatch:     # Permite ejecutarlo manualmente
 
 jobs:
