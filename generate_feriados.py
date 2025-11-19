@@ -1,14 +1,13 @@
 import holidays
 from datetime import date, timedelta
 
-# Librería oficial que calcula feriados AR para cualquier año
-ar = holidays.AR()
+# Feriados oficiales Argentina (incluye nacionales, trasladables y religiosos)
+ar_holidays = holidays.AR(years=range(date.today().year, date.today().year + 6))
 
-# Puentes turísticos oficiales (hardcodeados del decreto 2025-2026)
-PUENTES = {
-    2025: [date(2025, 5, 2), date(2025, 8, 15), date(2025, 10, 10), date(2025, 11, 21)],
-    2026: [date(2026, 3, 13), date(2026, 5, 29), date(2026, 7, 17), date(2026, 10, 9), date(2026, 12, 4)],
-    # Se agregan más cuando salgan decretos
+# Puentes turísticos oficiales 2025-2026 (decreto vigente)
+PUENTES_TURISTICOS = {
+    2025: ["2025-05-02", "2025-08-15", "2025-10-10", "2025-11-21"],
+    2026: ["2026-03-13", "2026-05-29", "2026-07-17", "2026-10-09", "2026-12-04"],
 }
 
 def escribir_evento(f, dtstart: str, dtend: str, summary: str):
@@ -24,39 +23,38 @@ def escribir_evento(f, dtstart: str, dtend: str, summary: str):
 def generar_ics(anio: int):
     filename = f"feriados_argentina_{anio}_oficial_completo.ics"
     
-    # Feriados de holidays.AR (nacionales + trasladables + religiosos) – sintaxis corregida
-    feriados_anio = ar.get_list(anio)  # Sin 'year=' – así funciona
-    
     with open(filename, "w", encoding="utf-8") as f:
         f.write("BEGIN:VCALENDAR\n")
         f.write("VERSION:2.0\n")
-        f.write("PRODID:-//Feriados Argentina Completo//holidays//ES\n")
+        f.write("PRODID:-//Feriados Argentina Oficial//ES\n")
         f.write("METHOD:PUBLISH\n")
-        f.write(f"X-WR-CALNAME:Feriados AR {anio} (nacionales + puentes + religiosos + fines semana)\n")
+        f.write(f"X-WR-CALNAME:Feriados AR {anio} (oficial + puentes + fines semana)\n")
         f.write("X-WR-TIMEZONE:America/Argentina/Buenos_Aires\n")
 
-        # Feriados oficiales
-        for fecha in feriados_anio:
-            dtstart = fecha.strftime("%Y%m%d")
-            dtend = (fecha + timedelta(days=1)).strftime("%Y%m%d")
-            nombre = ar[fecha]  # Ej: "Año Nuevo"
+        # === Feriados oficiales (nacionales + religiosos + trasladables) ===
+        for fecha_str, nombre in ar_holidays.items():
+            if fecha_str.year != anio:
+                continue
+            dtstart = fecha_str.strftime("%Y%m%d")
+            dtend = (fecha_str + timedelta(days=1)).strftime("%Y%m%d")
             if "trasladable" in nombre.lower():
-                nombre += " (trasladado) 🇦🇷"
+                nombre += " (trasladado) Argentina"
             else:
-                nombre += " 🇦🇷"
+                nombre += " Argentina"
             escribir_evento(f, dtstart, dtend, nombre)
 
-        # Puentes turísticos (si existen para este año)
-        for puente in PUENTES.get(anio, []):
+        # === Puentes turísticos ===
+        for puente_str in PUENTES_TURISTICOS.get(anio, []):
+            puente = date.fromisoformat(puente_str)
             dtstart = puente.strftime("%Y%m%d")
             dtend = (puente + timedelta(days=1)).strftime("%Y%m%d")
-            escribir_evento(f, dtstart, dtend, "Puente turístico 🏖️")
+            escribir_evento(f, dtstart, dtend, "Puente turístico Beach")
 
-        # Fines de semana
+        # === Fines de semana ===
         inicio = date(anio, 1, 1)
         actual = inicio
         while actual.year == anio:
-            if actual.weekday() >= 5:
+            if actual.weekday() >= 5:  # sábado o domingo
                 dtstart = actual.strftime("%Y%m%d")
                 dtend = (actual + timedelta(days=1)).strftime("%Y%m%d")
                 escribir_evento(f, dtstart, dtend, "Fin de semana")
@@ -64,9 +62,8 @@ def generar_ics(anio: int):
 
         f.write("END:VCALENDAR\n")
 
-    print(f"✓ {filename} generado ({len(feriados_anio)} feriados + puentes + fines de semana)")
+    print(f"Generated {filename} → Año Nuevo 1/1/{anio}, Carnaval, puentes, fines de semana, TODO")
 
 if __name__ == "__main__":
-    año_actual = date.today().year
-    for año in range(año_actual, año_actual + 6):
+    for año in range(date.today().year, date.today().year + 6):
         generar_ics(año)
