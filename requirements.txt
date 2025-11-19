@@ -1,1 +1,1 @@
-holidays==0.50
+holidays>=0.50
