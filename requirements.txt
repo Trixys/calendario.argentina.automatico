@@ -1,1 +1,1 @@
-holidays==0.52
+holidays==0.50
