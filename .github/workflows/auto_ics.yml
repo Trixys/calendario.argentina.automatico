@@ -2,15 +2,15 @@ name: Generar ICS automático (siempre actualizado)
 
 on:
   schedule:
-    - cron: "0 9 * * 1"   # Todos los lunes a las 9 AM UTC (6 AM Argentina)
-    - cron: "0 0 1 * *"   # Además el 1° de cada mes
-  workflow_dispatch:     # Permite ejecutarlo manualmente
+    - cron: "0 9 * * 1"   # Todos los lunes a las 6 AM Argentina
+    - cron: "0 0 1 * *"   # Además el día 1 de cada mes
+  workflow_dispatch:
 
 jobs:
-  generar:
+  generar-ics:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -18,16 +18,16 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Instalar dependencias
-        run: pip install holidays==0.62
+      - name: Install dependencies
+        run: pip install -r requirements.txt   # ← ahora sí instala requests
 
-      - name: Generar calendarios
+      - name: Generar archivos .ics
         run: python generate_feriados.py
 
-      - name: Commit y push si cambió algo
+      - name: Commit y push si hay cambios
         run: |
-          git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
           git add *.ics
-          git commit -m "Actualización automática feriados $(date +'%Y-%m-%d')" || echo "Sin cambios"
-          git push
+          git commit -m "Actualización automática de feriados $(date +'%Y-%m-%d')" || echo "No hay cambios para commitear"
+          git push || echo "Nada que pushear"
