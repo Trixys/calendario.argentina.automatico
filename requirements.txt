@@ -1,1 +1,1 @@
-requests
+holidays==0.52
